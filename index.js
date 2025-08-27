@@ -1,5 +1,5 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,12 +8,13 @@ app.get('/check', async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
+      executablePath: '/usr/bin/chromium',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
 
-    // ورود به سایت
+    // ورود به سامانه
     await page.goto(
       'https://auth.visas-de.tlscontact.com/auth/realms/atlas/protocol/openid-connect/auth',
       { waitUntil: 'domcontentloaded' }
@@ -23,13 +24,13 @@ app.get('/check', async (req, res) => {
     await page.click('#btn-login');
     await page.waitForNavigation();
 
-    // رفتن به صفحه وقت
+    // رفتن به صفحه نوبت‌گیری
     await page.goto(
       'https://visas-de.tlscontact.com/en-us/3487969/workflow/appointment-booking?location=irTHR2de',
       { waitUntil: 'domcontentloaded' }
     );
 
-    // بررسی دکمه وقت
+    // بررسی وجود دکمه فعال (یعنی وقت باز هست)
     const available = await page.$x(
       '//*[@id="main"]/div[1]/div/div[2]/div[3]/div/div[3]/div[2]/div/div/div/div/button[not(@disabled)]'
     );
@@ -44,5 +45,5 @@ app.get('/check', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
